@@ -15,24 +15,19 @@ jobs:
   boost-sast:
     name: SAST
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe to scan') }}
+    if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'safe to scan'))
     steps:
-      - run: |
-          echo $GITHUB_REF_NAME
-          echo $GITHUB_SHA
-          echo $GITHUB_REPOSITORY
-          echo $GITHUB_EVENT_NAME
-          echo $GITHUB_EVENT_PATH
       - name: Checkout
         uses: actions/checkout@v3
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Run Native Scanner
         uses: boostsecurityio/boostsec-scanner-github@v4
         env:
-          GITHUB_EVENT_NAME: pull_request
+          GITHUB_EVENT_NAME: ${{ fromJSON('{"push":"push","pull_request_target":"pull_request"}')[github.event_name] || github.event_name }}
+          GITHUB_REF_NAME: ${{ github.event.pull_request.head.ref }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
         with:
           api_token: ${{ secrets.BOOST_API_TOKEN }}
           registry_module: boostsecurityio/native-scanner
-          log_level: TRACE
