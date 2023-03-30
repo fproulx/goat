@@ -16,11 +16,25 @@ on:
       - opened
       - synchronize
 jobs:
-  boost-sast:
+  boost-sast-safe:
     name: SAST
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'pull_request_target' && contains(github.event.pull_request_target.labels.*.name, 'safe to scan')) }}
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Run Native Scanner
+        uses: boostsecurityio/boostsec-scanner-github@v4
+        with:
+          api_token: ${{ secrets.BOOST_API_TOKEN }}
+          registry_module: boostsecurityio/native-scanner
+  boost-sast-public-contribs:
+    name: SAST on Public Contributions
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request_target' }}
+#    if: ${{ github.event_name == 'pull_request_target' && contains(github.event.pull_request_target.labels.*.name, 'safe to scan') }}
+    steps:
+      - run: echo ${{ github.event }}
       - name: Checkout
         uses: actions/checkout@v3
       - name: Run Native Scanner
