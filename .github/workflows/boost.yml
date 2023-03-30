@@ -10,6 +10,7 @@ on:
       - opened
       - labeled
       - synchronize
+permissions: {}
 jobs:
   boost-sast:
     name: SAST
@@ -18,6 +19,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Run Native Scanner
         uses: boostsecurityio/boostsec-scanner-github@v4
         with:
