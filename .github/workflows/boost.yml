@@ -3,6 +3,12 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
   pull_request_target:
     branches:
       - main
@@ -13,7 +19,7 @@ jobs:
   boost-sast:
     name: SAST
     runs-on: ubuntu-latest
-    if: contains(github.event.pull_request.labels.*.name, 'safe to scan')
+    if: ${{ github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'pull_request_target' && contains(github.event.pull_request_target.labels.*.name, 'safe to scan')) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
